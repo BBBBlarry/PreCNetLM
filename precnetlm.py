@@ -10,9 +10,12 @@ from collections import OrderedDict
 
 from torch import nn
 from torch.utils.data import DataLoader, random_split
+from pytorch_lightning import loggers as pl_loggers
+
 from torchvision import transforms
 
 from harry_potter_data_util import *
+
 
 
 class PreCNetLM(pl.LightningModule):
@@ -85,20 +88,21 @@ class PreCNetLM(pl.LightningModule):
         # training hyperparams
         self.mu = mu
     
-    def forward(self, x, states):
+    def forward(self, x, states, mode='train', predict_next=None):
 
         """
         current: time step t - 1
         updated: time step t
         """
         # we want: (batch size, seq len, embedding size)
-        assert len(x.shape) == 3
+        assert (mode == 'predict' and predict_next) or (mode == 'train' and len(x.shape) == 3)
 
-        batch_size = x.shape[0]
-        seq_length = x.shape[1]
+        batch_size = x.shape[0] if mode == 'train' else 1
+        seq_length = x.shape[1] if mode == 'train' else predict_next
+
+        predictions = []
 
         for seq_idx in range(seq_length):
-            input = x[:, seq_idx, :]
             states_updated = {}
 
             # prediction phase
@@ -140,11 +144,18 @@ class PreCNetLM(pl.LightningModule):
                 a_hat_unit = units['a_hat']
                 a_hat = a_hat_unit(r)
 
+                # use softmax on the lowest layer
+                if level == 0:
+                    a_hat = F.softmax(a_hat, dim=-1)
+
                 state_updated['a_hat'] = a_hat
 
                 # calculate e
                 if level == 0:
-                    actual = input
+                    if mode == 'predict':
+                        actual = a_hat
+                    elif mode == 'train':
+                        actual = x[:, seq_idx, :]
                 else:
                     if level - 1 in states and 'r' in states[level-1]:
                         actual = states[level - 1]['r']
@@ -184,8 +195,9 @@ class PreCNetLM(pl.LightningModule):
                     states_updated[level]['r_internal'] = r_internal
                     
             states = states_updated
+            predictions.append(states_updated[0]['a_hat'])
 
-        return states_updated[0]['a_hat'], states_updated
+        return torch.stack(predictions, axis=1), states_updated
 
     def training_step(self, batch, batch_idx):
         # training_step defined the train loop. It is independent of forward
@@ -197,7 +209,12 @@ class PreCNetLM(pl.LightningModule):
             sum_e = states[level]['e'].sum()
             loss += self.mu[level] * sum_e / states[level]['e'].shape[1]
 
-        self.log('train_loss', loss)
+        self.log('Loss/train', loss, self.current_epoch)
+
+        for level in states:
+            for unit in ['a_hat', 'e', 'r']:
+                self.log(f'State_norm/{level}/{unit}/train', states[level][unit].sum(), self.current_epoch)
+        
         return loss
 
     def configure_optimizers(self):
@@ -220,29 +237,30 @@ if __name__ == "__main__":
     a_hat_stack_sizes=[
         [16, 16, 16], 
         [32, 32, 32], 
-        [64, 128, 128]]
-    r_stack_sizes=[
-        (32, 3),
-        (64, 3),
-        (128, 3),
-    ]
+        [64, 64, 64]]
 
-    mu = torch.Tensor([1.0, 0.0, 0.0])
+    r_stack_sizes=[
+        (16, 2),
+        (32, 2),
+        (64, 2),
+    ]
+    mu = torch.FloatTensor([1.0, 0.2, 0.2])
 
     precnetlm = PreCNetLM(
         vocabs_size=vocab_size,
         a_hat_stack_sizes=a_hat_stack_sizes,
         r_stack_sizes=r_stack_sizes,
-        mu=torch.Tensor([1.0, 0.0, 0.0])
+        mu=mu
     )
-    
-    # predictions, states = precnetlm(torch.rand(100, 10), states = {})
-    # predictions, states = precnetlm(torch.rand(100, 10), states = states)
-    # loss = precnetlm.training_step(torch.rand(100, 20, 10), 0)
-    # print(loss)
+
+    tb_logger = pl_loggers.TensorBoardLogger('lightning_logs/')
 
     trainer = pl.Trainer(
-        max_epochs=1
+        logger=tb_logger,
+        track_grad_norm=2,
+        weights_summary='full',
+        overfit_batches=0.01,
+        max_epochs=5,
     )
 
     trainer.fit(
@@ -251,21 +269,30 @@ if __name__ == "__main__":
         DataLoader(data_test, batch_size=TEST_BATCH_SIZE),
     )
 
+    # prepare the prompt
     vocab = data_train.vocab
-    states = {}
     bootstrap = 'Harry potter and the '
     res = ""
 
-    for c in bootstrap:
-        x = vocab.voc2ind[c]
-        x = F.one_hot(torch.LongTensor([x]), data_train.vocab_size())
-        x = torch.unsqueeze(x, 0)
-        predictions, states = precnetlm(x, states = states)
+    x = torch.LongTensor([vocab.voc2ind[c] for c in bootstrap])
+    x = torch.stack([F.one_hot(xx, data_train.vocab_size()) for xx in x])
+    x = x.type(torch.FloatTensor)
+    x = torch.unsqueeze(x, 0)
+    
+    # go through the prompt
+    predictions, states = precnetlm(x, states = {})
 
-    for i in range(30):
-        predictions = torch.unsqueeze(predictions, 0)
-        predictions, states = precnetlm(predictions, states = states)
-        c = predictions.argmax().item()
+    # predict the next characters
+    predictions, states = precnetlm(
+        None, 
+        states = states,
+        mode='predict',
+        predict_next=30
+    )
+
+    # decode the characters
+    for t in range(predictions.shape[1]):
+        c = predictions[0,t,:].argmax().item()
         res += vocab.ind2voc[c]
     
     print(bootstrap + res)

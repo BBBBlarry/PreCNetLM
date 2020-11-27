@@ -96,7 +96,6 @@ def prepare_data(data_path):
     for char in data:
       if char in voc2ind:
         processed_data.append(voc2ind[char]) # TODO: Fill this in
-    print(len(processed_data))
 
     ind2voc = {val: key for key, val in voc2ind.items()}
 
