@@ -217,6 +217,19 @@ class PreCNetLM(pl.LightningModule):
         
         return loss
 
+    def validation_step(self, batch, batch_idx):
+        # training_step defined the train loop. It is independent of forward
+        states = {}
+        _, states = self(batch, states)
+
+        loss = 0.0
+        for level in states:
+            sum_e = states[level]['e'].sum()
+            loss += self.mu[level] * sum_e / states[level]['e'].shape[1]
+
+        self.log('Loss/val', loss, self.current_epoch)
+        return loss
+
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=0.0005)
         return optimizer
