@@ -118,7 +118,7 @@ class PreCNetLM(pl.LightningModule):
                     if 'e' in current_state:
                         e_current = current_state['e']
                     else:
-                        e_current = torch.zeros(batch_size, self.r_stack_sizes[level][0])
+                        e_current = torch.zeros(batch_size, self.r_stack_sizes[level][0] * 2)
 
                     r_unit_input = e_current         
                 else:
@@ -213,12 +213,12 @@ class PreCNetLM(pl.LightningModule):
 
         for level in states:
             for unit in ['a_hat', 'e', 'r']:
-                self.log(f'State_norm/{level}/{unit}/train', states[level][unit].sum(), self.current_epoch)
+                self.log(f'State_norm/{level}/{unit}/train', states[level][unit].norm(), self.current_epoch)
         
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(self.parameters(), lr=0.0005)
         return optimizer
 
 
@@ -235,16 +235,16 @@ if __name__ == "__main__":
     vocab_size = data_train.vocab_size()
 
     a_hat_stack_sizes=[
-        [16, 16, 16], 
-        [32, 32, 32], 
-        [64, 64, 64]]
-
+        [16, 16], 
+        [32, 32], 
+        [32, 32],
+    ]
     r_stack_sizes=[
         (16, 2),
         (32, 2),
-        (64, 2),
+        (32, 2),
     ]
-    mu = torch.FloatTensor([1.0, 0.2, 0.2])
+    mu = torch.FloatTensor([1.0, 0.01, 0.01])
 
     precnetlm = PreCNetLM(
         vocabs_size=vocab_size,
@@ -259,8 +259,8 @@ if __name__ == "__main__":
         logger=tb_logger,
         track_grad_norm=2,
         weights_summary='full',
-        overfit_batches=0.01,
-        max_epochs=5,
+        max_epochs=2,
+        # overfit_batches=0.01,
     )
 
     trainer.fit(
