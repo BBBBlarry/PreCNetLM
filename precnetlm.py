@@ -133,7 +133,7 @@ class PreCNetLM(pl.LightningModule):
                     e_top_down = states_updated[level + 1]['e']
                     r_unit_input = e_affline_unit(e_top_down)
                 
-                r_unit_input = torch.unsqueeze(r_unit_input, 0)
+                r_unit_input = torch.unsqueeze(r_unit_input, 1)
 
                 if self.r_unit_type == 'lstm':
                     if 'r_internal' in current_state:
@@ -141,7 +141,7 @@ class PreCNetLM(pl.LightningModule):
                     else:
                         r, r_internal = r_unit(r_unit_input)
                 
-                r = torch.squeeze(r, 0)
+                r = torch.squeeze(r, 1)
 
                 state_updated['r'] = r
                 state_updated['r_internal'] = r_internal
@@ -190,12 +190,12 @@ class PreCNetLM(pl.LightningModule):
                 if level < self.num_stacks - 1:
                     r_unit = self.units[str(level)]['r']
                     r_unit_input = states_updated[level]['e']
-                    r_unit_input = torch.unsqueeze(r_unit_input, 0)
+                    r_unit_input = torch.unsqueeze(r_unit_input, 1)
 
                     if self.r_unit_type == 'lstm':
                         r, r_internal = r_unit(r_unit_input, states_updated[level]['r_internal'])
                     
-                    r = torch.squeeze(r, 0)
+                    r = torch.squeeze(r, 1)
 
                     states_updated[level]['r'] = r
                     states_updated[level]['r_internal'] = r_internal
