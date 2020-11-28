@@ -20,8 +20,7 @@ from harry_potter_data_util import *
 
 class PreCNetLM(pl.LightningModule):
     def __init__(self, vocabs_size, a_hat_stack_sizes, r_stack_sizes, 
-        mu, error_activation='relu', a_hat_activation='relu',
-        r_unit_type='lstm', extrap_start_time=None):
+        mu, error_activation='relu', a_hat_activation='relu', r_unit_type='lstm'):
 
         assert len(a_hat_stack_sizes) == len(r_stack_sizes)
         assert len(a_hat_stack_sizes) > 1
@@ -86,7 +85,6 @@ class PreCNetLM(pl.LightningModule):
         self.units = {level: nn.ModuleDict(units_at_level) for level, units_at_level in self.units.items()}
         self.units = nn.ModuleDict(self.units)
         self.error_activation='relu'
-        self.extrap_start_time = extrap_start_time
         self.r_unit_type = r_unit_type
         self.r_stack_sizes = r_stack_sizes
 
