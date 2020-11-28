@@ -47,7 +47,12 @@ class PreCNetLM(pl.LightningModule):
                     input_size = r_stack_sizes[level - 1][0]
                 input_size *= 2
 
-                self.units[str(level)]['r'] = nn.LSTM(input_size, hidden_size, num_layers)
+                self.units[str(level)]['r'] = nn.LSTM(
+                    input_size, 
+                    hidden_size, 
+                    num_layers, 
+                    batch_first=True,
+                )
 
             # append A_hat unit
             hidden_sizes = a_hat_stack_sizes[level]
@@ -118,7 +123,10 @@ class PreCNetLM(pl.LightningModule):
                     if 'e' in current_state:
                         e_current = current_state['e']
                     else:
-                        e_current = torch.zeros(batch_size, self.r_stack_sizes[level][0] * 2)
+                        e_current = torch.zeros(
+                            batch_size, 
+                            self.r_stack_sizes[level][0] * 2
+                        ).to(self.device)
 
                     r_unit_input = e_current         
                 else:
@@ -160,7 +168,7 @@ class PreCNetLM(pl.LightningModule):
                     if level - 1 in states and 'r' in states[level-1]:
                         actual = states[level - 1]['r']
                     else:
-                        actual = torch.zeros(batch_size, r_stack_sizes[level-1][0])
+                        actual = torch.zeros(batch_size, r_stack_sizes[level-1][0]).to(self.device)
                 prediction = a_hat
 
                 e = F.relu(torch.cat((prediction - actual, actual - prediction), 1))
@@ -273,7 +281,8 @@ if __name__ == "__main__":
         track_grad_norm=2,
         weights_summary='full',
         max_epochs=2,
-        # overfit_batches=0.01,
+        log_every_n_steps=25,
+        overfit_batches=0.01,
     )
 
     trainer.fit(
