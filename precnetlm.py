@@ -21,13 +21,13 @@ from harry_potter_data_util import *
 
 class PreCNetLM(pl.LightningModule):
     def __init__(self, vocabs_size, a_hat_stack_sizes, r_stack_sizes, 
-        mu, error_activation='relu', a_hat_activation='relu', r_unit_type='lstm'):
+        mu, error_activation='leaky_relu', a_hat_activation='leaky_relu', r_unit_type='lstm'):
 
         assert len(a_hat_stack_sizes) == len(r_stack_sizes)
         assert len(a_hat_stack_sizes) > 1
         assert r_unit_type in ['lstm']
-        assert a_hat_activation in ['relu']
-        assert error_activation in ['relu']
+        assert a_hat_activation in ['relu', 'leaky_relu']
+        assert error_activation in ['relu', 'leaky_relu']
 
         super(PreCNetLM, self).__init__()
 
@@ -70,6 +70,8 @@ class PreCNetLM(pl.LightningModule):
                 if i < num_layers - 1:
                     if a_hat_activation == 'relu':
                         a_hat_unit[f'a_hat_{level}_activation_{i}'] = nn.ReLU()
+                    elif a_hat_activation == 'leaky_relu':
+                        a_hat_unit[f'a_hat_{level}_activation_{i}'] = nn.LeakyReLU()
                     
             a_hat_unit = nn.Sequential(a_hat_unit)
             self.units[str(level)]['a_hat'] = a_hat_unit
@@ -170,7 +172,10 @@ class PreCNetLM(pl.LightningModule):
                         actual = torch.zeros(batch_size, r_stack_sizes[level-1][0]).to(self.device)
                 prediction = a_hat
 
-                e = F.relu(torch.cat((prediction - actual, actual - prediction), 1))
+                if self.error_activation == 'relu':
+                    e = F.relu(torch.cat((prediction - actual, actual - prediction), 1))
+                elif self.error_activation == 'leaky_relu':
+                    e = F.leaky_relu(torch.cat((prediction - actual, actual - prediction), 1))
 
                 state_updated['e'] = e
 
@@ -183,7 +188,11 @@ class PreCNetLM(pl.LightningModule):
                 if level > 0:
                     actual = states_updated[level - 1]['r']
                     prediction = states_updated[level]['a_hat']
-                    e = F.relu(torch.cat((prediction - actual, actual - prediction), 1))
+
+                    if self.error_activation == 'relu':
+                        e = F.relu(torch.cat((prediction - actual, actual - prediction), 1))
+                    elif self.error_activation == 'leaky_relu':
+                        e = F.leaky_relu(torch.cat((prediction - actual, actual - prediction), 1))
 
                     states_updated[level]['e'] = e
 
@@ -200,7 +209,7 @@ class PreCNetLM(pl.LightningModule):
 
                     states_updated[level]['r'] = r
                     states_updated[level]['r_internal'] = r_internal
-                    
+
             states = states_updated
             predictions.append(states_updated[0]['a_hat'])
 
@@ -253,14 +262,14 @@ if __name__ == "__main__":
     vocab_size = data_train.vocab_size()
 
     a_hat_stack_sizes=[
-        [16, 16], 
-        [32, 32], 
-        [32, 32],
+        [64, 64], 
+        [64, 64], 
+        [64, 64],
     ]
     r_stack_sizes=[
-        (16, 2),
-        (32, 2),
-        (32, 2),
+        (64, 2),
+        (64, 2),
+        (64, 2),
     ]
     mu = torch.FloatTensor([1.0, 0.01, 0.01])
 
@@ -275,10 +284,10 @@ if __name__ == "__main__":
 
     trainer = pl.Trainer(
         logger=tb_logger,
-        track_grad_norm=2,
         weights_summary='full',
         max_epochs=2,
         log_every_n_steps=25,
+        # track_grad_norm=2,
         overfit_batches=0.01,
     )
 
