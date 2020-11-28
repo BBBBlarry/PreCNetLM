@@ -10,6 +10,7 @@ from collections import OrderedDict
 
 from torch import nn
 from torch.utils.data import DataLoader, random_split
+from torch.utils.tensorboard import SummaryWriter
 from pytorch_lightning import loggers as pl_loggers
 
 from torchvision import transforms
@@ -91,7 +92,7 @@ class PreCNetLM(pl.LightningModule):
         # training hyperparams
         self.mu = mu
     
-    def forward(self, x, states, mode='train', predict_next=None):
+    def forward(self, x, states={}, mode='train', predict_next=None):
 
         """
         current: time step t - 1
@@ -207,8 +208,7 @@ class PreCNetLM(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         # training_step defined the train loop. It is independent of forward
-        states = {}
-        _, states = self(batch, states)
+        _, states = self(batch)
 
         loss = 0.0
         for level in states:
@@ -225,8 +225,7 @@ class PreCNetLM(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         # training_step defined the train loop. It is independent of forward
-        states = {}
-        _, states = self(batch, states)
+        _, states = self(batch)
 
         loss = 0.0
         for level in states:
@@ -237,7 +236,7 @@ class PreCNetLM(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.0005)
+        optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
         return optimizer
 
 
@@ -300,7 +299,7 @@ if __name__ == "__main__":
     x = torch.unsqueeze(x, 0)
     
     # go through the prompt
-    predictions, states = precnetlm(x, states = {})
+    predictions, states = precnetlm(x)
 
     # predict the next characters
     predictions, states = precnetlm(
