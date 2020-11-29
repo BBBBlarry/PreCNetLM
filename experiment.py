@@ -1,5 +1,5 @@
+from harry_potter_data_util import *
 from precnetlm import *
-
 
 if __name__ == "__main__":
     SEQUENCE_LENGTH = 100

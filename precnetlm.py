@@ -15,9 +15,6 @@ from pytorch_lightning import loggers as pl_loggers
 
 from torchvision import transforms
 
-from harry_potter_data_util import *
-
-
 
 class PreCNetLM(pl.LightningModule):
     def __init__(self, vocabs_size, a_hat_stack_sizes, r_stack_sizes, 
