@@ -21,11 +21,11 @@ from harry_potter_data_util import *
 
 class PreCNetLM(pl.LightningModule):
     def __init__(self, vocabs_size, a_hat_stack_sizes, r_stack_sizes, 
-        mu, error_activation='leaky_relu', a_hat_activation='leaky_relu', r_unit_type='lstm'):
+        mu, error_activation='leaky_relu', a_hat_activation='leaky_relu', r_unit_type='gru'):
 
         assert len(a_hat_stack_sizes) == len(r_stack_sizes)
         assert len(a_hat_stack_sizes) > 1
-        assert r_unit_type in ['lstm']
+        assert r_unit_type in ['lstm', 'gru']
         assert a_hat_activation in ['relu', 'leaky_relu']
         assert error_activation in ['relu', 'leaky_relu']
 
@@ -38,7 +38,7 @@ class PreCNetLM(pl.LightningModule):
         for level in range(self.num_stacks):
             self.units[str(level)] = {}
             # append R unit
-            if r_unit_type == 'lstm':
+            if r_unit_type in ['lstm', 'gru']:
                 hidden_size, num_layers = r_stack_sizes[level]
 
                 if level == 0:
@@ -47,12 +47,20 @@ class PreCNetLM(pl.LightningModule):
                     input_size = r_stack_sizes[level - 1][0]
                 input_size *= 2
 
-                self.units[str(level)]['r'] = nn.LSTM(
-                    input_size, 
-                    hidden_size, 
-                    num_layers, 
-                    batch_first=True,
-                )
+                if r_unit_type == 'lstm':
+                    self.units[str(level)]['r'] = nn.LSTM(
+                        input_size, 
+                        hidden_size, 
+                        num_layers, 
+                        batch_first=True,
+                    )
+                elif r_unit_type == 'gru':
+                    self.units[str(level)]['r'] = nn.GRU(
+                        input_size, 
+                        hidden_size, 
+                        num_layers, 
+                        batch_first=True,
+                    )
 
             # append A_hat unit
             hidden_sizes = a_hat_stack_sizes[level]
@@ -138,7 +146,7 @@ class PreCNetLM(pl.LightningModule):
                 
                 r_unit_input = torch.unsqueeze(r_unit_input, 1)
 
-                if self.r_unit_type == 'lstm':
+                if self.r_unit_type in ['lstm', 'gru']:
                     if 'r_internal' in current_state:
                         r, r_internal = r_unit(r_unit_input, current_state['r_internal'])
                     else:
@@ -202,7 +210,7 @@ class PreCNetLM(pl.LightningModule):
                     r_unit_input = states_updated[level]['e']
                     r_unit_input = torch.unsqueeze(r_unit_input, 1)
 
-                    if self.r_unit_type == 'lstm':
+                    if self.r_unit_type in ['lstm', 'gru']:
                         r, r_internal = r_unit(r_unit_input, states_updated[level]['r_internal'])
                     
                     r = torch.squeeze(r, 1)
