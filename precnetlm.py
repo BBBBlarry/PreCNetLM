@@ -245,7 +245,12 @@ class PreCNetLM(pl.LightningModule):
 
         for level in states:
             for unit in ['a_hat', 'e', 'r']:
-                self.log(f'State_norm/{level}/{unit}/train', states[level][unit].norm(), self.current_epoch)
+                self.log(f'State_norm/{level}/{unit}', states[level][unit].norm(), self.current_epoch)
+        
+        for level in states:
+            for unit in ['e_affline']:
+                if level > 0:
+                    self.log(f'Weight_norm/{level}/{unit}', self.units[str(level)][unit].weight.data.norm(), self.current_epoch)
         
         return loss
 
