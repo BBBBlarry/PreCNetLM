@@ -119,6 +119,7 @@ class PreCNetLM(pl.LightningModule):
         seq_length = x.shape[1] if mode == 'train' else predict_next
 
         predictions = []
+        errors = {level: [] for level in range(self.num_stacks)}
 
         for seq_idx in range(seq_length):
             states_updated = {}
@@ -155,7 +156,7 @@ class PreCNetLM(pl.LightningModule):
                         r, r_internal = r_unit(r_unit_input, current_state['r_internal'])
                     else:
                         r, r_internal = r_unit(r_unit_input) 
-                        
+
                 r = torch.squeeze(r, 1)
 
                 state_updated['r'] = r
@@ -225,16 +226,23 @@ class PreCNetLM(pl.LightningModule):
             states = states_updated
             predictions.append(states_updated[0]['a_hat'])
 
-        return torch.stack(predictions, axis=1), states_updated
+            for level in range(self.num_stacks):
+                errors[level].append(states_updated[level]['e'])
+        
+        # transform lists to tensors
+        predictions = torch.stack(predictions, axis=1)
+        errors = {level: torch.stack(error, axis=1) for level, error in errors.items()}
+
+        return predictions, errors, states_updated
 
     def training_step(self, batch, batch_idx):
         # training_step defined the train loop. It is independent of forward
-        _, states = self(batch)
+        _, errors, states = self(batch)
 
         loss = 0.0
-        for level in states:
-            sum_e = states[level]['e'].sum()
-            loss += self.mu[level] * sum_e / states[level]['e'].shape[1]
+        for level in errors:
+            sum_e = errors[level][:, 1:, :].sum()
+            loss += self.mu[level] * sum_e
 
         self.log('Loss/train', loss, self.current_epoch)
 
@@ -245,13 +253,12 @@ class PreCNetLM(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        # training_step defined the train loop. It is independent of forward
-        _, states = self(batch)
+        _, errors, _ = self(batch)
 
         loss = 0.0
-        for level in states:
-            sum_e = states[level]['e'].sum()
-            loss += self.mu[level] * sum_e / states[level]['e'].shape[1]
+        for level in errors:
+            sum_e = errors[level][:, 1:, :].sum()
+            loss += self.mu[level] * sum_e
 
         self.log('Loss/val', loss, self.current_epoch)
         return loss
@@ -262,9 +269,9 @@ class PreCNetLM(pl.LightningModule):
 
 
 if __name__ == "__main__":
-    SEQUENCE_LENGTH = 20
-    BATCH_SIZE = 32
-    TEST_BATCH_SIZE = 32
+    SEQUENCE_LENGTH = 40
+    BATCH_SIZE = 16
+    TEST_BATCH_SIZE = 16
     
     train_path, test_path = prepare_data('data/harry_potter.txt')
 
@@ -274,16 +281,16 @@ if __name__ == "__main__":
     vocab_size = data_train.vocab_size()
 
     a_hat_stack_sizes=[
-        [64, 64], 
-        [64, 64], 
-        [64, 64],
+        [128, 128], 
+        [128, 128], 
+        [128, 128], 
     ]
     r_stack_sizes=[
-        (128, 2),
-        (128, 2),
-        (128, 2),
+        (128, 1),
+        (128, 1),
+        (128, 1),
     ]
-    mu = torch.FloatTensor([1.0, 0.01, 0.01])
+    mu = torch.FloatTensor([1.0, 0.00, 0.00])
 
     precnetlm = PreCNetLM(
         vocabs_size=vocab_size,
@@ -298,8 +305,9 @@ if __name__ == "__main__":
 
     trainer = pl.Trainer(
         logger=tb_logger,
+        gradient_clip_val=0.25,
         # weights_summary='full',
-        max_epochs=2,
+        max_epochs=10,
         log_every_n_steps=25,
         # track_grad_norm=2,
         overfit_batches=0.01,
@@ -322,10 +330,10 @@ if __name__ == "__main__":
     x = torch.unsqueeze(x, 0)
     
     # go through the prompt
-    predictions, states = precnetlm(x)
+    _, _, states = precnetlm(x)
 
     # predict the next characters
-    predictions, states = precnetlm(
+    predictions, _, states = precnetlm(
         None, 
         states = states,
         mode='predict',
