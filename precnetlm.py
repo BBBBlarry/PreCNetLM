@@ -241,7 +241,7 @@ class PreCNetLM(pl.LightningModule):
 
         loss = 0.0
         for level in errors:
-            sum_e = errors[level][:, 1:, :].sum()
+            sum_e = errors[level][:, 1:, :].mean()
             loss += self.mu[level] * sum_e
 
         self.log('Loss/train', loss, self.current_epoch)
@@ -257,7 +257,7 @@ class PreCNetLM(pl.LightningModule):
 
         loss = 0.0
         for level in errors:
-            sum_e = errors[level][:, 1:, :].sum()
+            sum_e = errors[level][:, 1:, :].mean()
             loss += self.mu[level] * sum_e
 
         self.log('Loss/val', loss, self.current_epoch)
@@ -290,7 +290,7 @@ if __name__ == "__main__":
         (128, 1),
         (128, 1),
     ]
-    mu = torch.FloatTensor([1.0, 0.00, 0.00])
+    mu = torch.FloatTensor([1.0, 0.01, 0.01])
 
     precnetlm = PreCNetLM(
         vocabs_size=vocab_size,
@@ -321,7 +321,7 @@ if __name__ == "__main__":
 
     # prepare the prompt
     vocab = data_train.vocab
-    bootstrap = 'Harry potter and the '
+    bootstrap = 'Knock, knock '
     res = ""
 
     x = torch.LongTensor([vocab.voc2ind[c] for c in bootstrap])
