@@ -32,6 +32,7 @@ class PreCNetLM(pl.LightningModule):
         super(PreCNetLM, self).__init__()
 
         self.num_stacks = len(a_hat_stack_sizes)
+        self.e_sizes = {}
 
         # a nn.ModuleDict of level -> (nn.ModuleDict of unit type -> nn.Module)
         self.units = {}
@@ -83,6 +84,9 @@ class PreCNetLM(pl.LightningModule):
                     
             a_hat_unit = nn.Sequential(a_hat_unit)
             self.units[str(level)]['a_hat'] = a_hat_unit
+
+            # append E unit sizes
+            self.e_sizes[level] = hidden_sizes[-1] * 2
             
             # append E affline unit
             # here we just add a simple affline layer to transfor E unit's
@@ -134,7 +138,7 @@ class PreCNetLM(pl.LightningModule):
                     else:
                         e_current = torch.zeros(
                             batch_size, 
-                            self.r_stack_sizes[level][0] * 2
+                            self.e_sizes[level],
                         ).to(self.device)
 
                     r_unit_input = e_current         
@@ -150,8 +154,8 @@ class PreCNetLM(pl.LightningModule):
                     if 'r_internal' in current_state:
                         r, r_internal = r_unit(r_unit_input, current_state['r_internal'])
                     else:
-                        r, r_internal = r_unit(r_unit_input)
-                
+                        r, r_internal = r_unit(r_unit_input) 
+                        
                 r = torch.squeeze(r, 1)
 
                 state_updated['r'] = r
@@ -275,9 +279,9 @@ if __name__ == "__main__":
         [64, 64],
     ]
     r_stack_sizes=[
-        (64, 2),
-        (64, 2),
-        (64, 2),
+        (128, 2),
+        (128, 2),
+        (128, 2),
     ]
     mu = torch.FloatTensor([1.0, 0.01, 0.01])
 
@@ -288,11 +292,13 @@ if __name__ == "__main__":
         mu=mu
     )
 
+    print(precnetlm)
+
     tb_logger = pl_loggers.TensorBoardLogger('lightning_logs/')
 
     trainer = pl.Trainer(
         logger=tb_logger,
-        weights_summary='full',
+        # weights_summary='full',
         max_epochs=2,
         log_every_n_steps=25,
         # track_grad_norm=2,
