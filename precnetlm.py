@@ -96,7 +96,7 @@ class PreCNetLM(pl.LightningModule):
 
         self.units = {level: nn.ModuleDict(units_at_level) for level, units_at_level in self.units.items()}
         self.units = nn.ModuleDict(self.units)
-        self.error_activation='relu'
+        self.error_activation=error_activation
         self.r_unit_type = r_unit_type
         self.r_stack_sizes = r_stack_sizes
 
