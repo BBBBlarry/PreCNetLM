@@ -7,9 +7,9 @@ import torch
 
 
 class TestDataset(torch.utils.data.Dataset):
-    def __init__(self, vocab_size, sequence_length, batch_size, num_batches):
+    def __init__(self, mode, vocab_size, sequence_length, batch_size, num_batches):
         super(TestDataset, self).__init__()
-
+        self.mode = mode
         self.sequence_length = sequence_length
         self.batch_size = batch_size
         self.vocab_size = vocab_size
@@ -24,7 +24,16 @@ class TestDataset(torch.utils.data.Dataset):
         # The data and labels should be torch long tensors.
         # You should return a single entry for the batch using the idx to decide which chunk you are 
         # in and how far down in the chunk you are.
-        data = [i for i in range(idx, idx + self.sequence_length)]
+        if self.mode == 'repeat_last':
+            data = [self.vocab_size - 1 for _ in range(idx, idx + self.sequence_length)]
+        elif self.mode == 'repeat_any':
+            data = [idx % self.vocab_size for _ in range(idx, idx + self.sequence_length)]
+        elif self.mode == 'sequence':
+            data = [i % self.vocab_size for i in range(idx, idx + self.sequence_length)]
+        elif self.mode == 'sequence_skip':
+            data = [i * 2 % self.vocab_size for i in range(idx, idx + self.sequence_length)]
+        else:
+            raise Exception(f'No such mode: {self.mode}')
+
         data = torch.nn.functional.one_hot(torch.LongTensor(data), self.vocab_size)
-        
         return data
