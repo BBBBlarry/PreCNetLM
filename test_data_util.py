@@ -32,6 +32,12 @@ class TestDataset(torch.utils.data.Dataset):
             data = [i % self.vocab_size for i in range(idx, idx + self.sequence_length)]
         elif self.mode == 'sequence_skip':
             data = [i * 2 % self.vocab_size for i in range(idx, idx + self.sequence_length)]
+        elif self.mode == 'sequence_double':
+            data = [[i % self.vocab_size] * 2 for i in range(idx, idx + self.sequence_length // 2)]
+            data = [ii for i in data for ii in i]
+        elif self.mode == 'sequence_skip_double':
+            data = [[i * 2 % self.vocab_size] * 2 for i in range(idx, idx + self.sequence_length // 2)]
+            data = [ii for i in data for ii in i]
         else:
             raise Exception(f'No such mode: {self.mode}')
 
