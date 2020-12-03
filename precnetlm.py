@@ -267,4 +267,10 @@ class PreCNetLM(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
-        return optimizer
+        scheduler = torch.optim.lr_scheduler.CyclicLR(
+            optimizer, 
+            base_lr=0.001, 
+            max_lr=0.005, 
+            cycle_momentum=False
+        )
+        return [optimizer], [scheduler]
