@@ -20,13 +20,19 @@ def run_experiment(dataset_mode, vocab_size, epochs):
         [64], 
         [64], 
         [64], 
+        [64], 
+        [64], 
+        [64], 
     ]
     r_stack_sizes=[
         (64, 1),
         (64, 1),
         (64, 1),
+        (64, 1),
+        (64, 1),
+        (64, 1),
     ]
-    mu = torch.FloatTensor([1.0, 0.1, 0.1])
+    mu = torch.FloatTensor([1.0, 0.1, 0.1, 0.1, 0.1, 0.1])
 
     precnetlm = PreCNetLM(
         vocabs_size=vocab_size,

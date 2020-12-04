@@ -273,7 +273,7 @@ class PreCNetLM(pl.LightningModule):
         #     max_lr=0.005, 
         #     cycle_momentum=False
         # )
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=30)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.75, patience=5)
         return {
             "optimizer": optimizer, 
             "lr_scheduler": scheduler, 
