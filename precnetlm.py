@@ -266,11 +266,16 @@ class PreCNetLM(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
-        scheduler = torch.optim.lr_scheduler.CyclicLR(
-            optimizer, 
-            base_lr=0.001, 
-            max_lr=0.005, 
-            cycle_momentum=False
-        )
-        return [optimizer], [scheduler]
+        optimizer = torch.optim.Adam(self.parameters(), lr=0.005)
+        # scheduler = torch.optim.lr_scheduler.CyclicLR(
+        #     optimizer, 
+        #     base_lr=0.001, 
+        #     max_lr=0.005, 
+        #     cycle_momentum=False
+        # )
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=30)
+        return {
+            "optimizer": optimizer, 
+            "lr_scheduler": scheduler, 
+            "monitor": "Loss/val"
+        }
