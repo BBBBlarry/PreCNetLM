@@ -1,5 +1,7 @@
 import sys
-import getopt
+import argparse
+
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 from test_data_util import *
 from precnetlm import *
@@ -15,16 +17,16 @@ def run_experiment(dataset_mode, vocab_size, epochs):
     data_test = TestDataset(dataset_mode, vocab_size, SEQUENCE_LENGTH, BATCH_SIZE, NUM_BATCHES)
 
     a_hat_stack_sizes=[
-        [128, 128], 
-        [128, 128], 
-        [128, 128], 
+        [64], 
+        [64], 
+        [64], 
     ]
     r_stack_sizes=[
-        (128, 1),
-        (128, 1),
-        (128, 1),
+        (64, 1),
+        (64, 1),
+        (64, 1),
     ]
-    mu = torch.FloatTensor([1.0, 0.0, 0.0])
+    mu = torch.FloatTensor([1.0, 0.1, 0.1])
 
     precnetlm = PreCNetLM(
         vocabs_size=vocab_size,
@@ -36,12 +38,14 @@ def run_experiment(dataset_mode, vocab_size, epochs):
     print(precnetlm)
 
     tb_logger = pl_loggers.TensorBoardLogger('lightning_logs_debugging/')
+    lr_logger = LearningRateMonitor(logging_interval='step')
 
     trainer = pl.Trainer(
         logger=tb_logger,
         gradient_clip_val=0.25,
         max_epochs=epochs,
         log_every_n_steps=25,
+        callbacks=[lr_logger]
     )
 
     trainer.fit(
@@ -88,23 +92,28 @@ def run_experiment(dataset_mode, vocab_size, epochs):
 
 
 if __name__ == "__main__":
-    argv = sys.argv[1:]
-
-    try:
-        opts, args = getopt.getopt(argv,"hm:v:e:",["mode=", "vocab_size=","epochs="])
-    except getopt.GetoptError:
-        print('experiment_tests.py -m <mode> -v <vocab_size> -e <epochs>')
-        sys.exit(2)
-
-    for opt, arg in opts:
-        if opt == '-h':
-            print('experiment_tests.py -m <mode> -v <vocab_size> -e <epochs>')
-            sys.exit()
-        elif opt in ("-m", "--mode"):
-            mode = arg
-        elif opt in ("-v", "--vocab_size"):
-            vocab_size = int(arg)
-        elif opt in ("-e", "--epochs"):
-            epochs = int(arg)
-
-    run_experiment(mode, vocab_size, epochs)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-m", 
+        "--mode", 
+        type=str,
+        help="the kind of the dataset",
+        default="sequence"
+    )
+    parser.add_argument(
+        "-v", 
+        "--vocab_size", 
+        type=int,
+        help="size of the vocabulary",
+        default=10
+    )
+    parser.add_argument(
+        "-e", 
+        "--epochs", 
+        type=int,
+        help="number of epochs to train for",
+        default=10
+    )
+    
+    args = parser.parse_args()
+    run_experiment(args.mode, args.vocab_size, args.epochs)

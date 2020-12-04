@@ -2,6 +2,7 @@ import math
 import re
 import tqdm
 import pickle
+import random
 
 import torch
 
@@ -38,6 +39,13 @@ class TestDataset(torch.utils.data.Dataset):
         elif self.mode == 'sequence_skip_double':
             data = [[i * 2 % self.vocab_size] * 2 for i in range(idx, idx + self.sequence_length // 2)]
             data = [ii for i in data for ii in i]
+        elif self.mode == 'binary_count':
+            count_to = idx % (self.vocab_size - 1) + 1
+            data = [count_to]
+            while len(data) < self.sequence_length:
+                data += [1 for _ in range(count_to)]
+                data += [0 for _ in range(count_to)]
+            data = data[:self.sequence_length]
         else:
             raise Exception(f'No such mode: {self.mode}')
 
