@@ -14,16 +14,20 @@ if __name__ == "__main__":
     vocab_size = data_train.vocab_size()
 
     a_hat_stack_sizes=[
-        [128, 128], 
-        [128, 128], 
-        [128, 128], 
+        [128], 
+        [128], 
+        [128], 
+        [128], 
+        [128], 
     ]
     r_stack_sizes=[
         (128, 1),
         (128, 1),
         (128, 1),
+        (128, 1),
+        (128, 1),
     ]
-    mu = torch.FloatTensor([1.0, 0.01, 0.01])
+    mu = torch.FloatTensor([1.0, 0.01, 0.01, 0.01, 0.01])
 
     precnetlm = PreCNetLM(
         vocabs_size=vocab_size,
@@ -39,11 +43,11 @@ if __name__ == "__main__":
     trainer = pl.Trainer(
         logger=tb_logger,
         gradient_clip_val=0.25,
-        # weights_summary='full',
-        max_epochs=10,
-        log_every_n_steps=25,
+        weights_summary='full',
+        max_epochs=5,
+        # log_every_n_steps=25,
         # track_grad_norm=2,
-        overfit_batches=0.01,
+        # overfit_batches=0.01,
     )
 
     trainer.fit(
