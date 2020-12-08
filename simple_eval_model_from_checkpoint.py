@@ -1,8 +1,10 @@
-import os
+import argparse
 import glob
+import os
 
 from precnetlm import *
 from simple_dataset import *
+
 
 def load_last_from_checkpoint(log_path, version_number):
     # find all checkpoints
@@ -11,7 +13,7 @@ def load_last_from_checkpoint(log_path, version_number):
     all_checkpoints = glob.glob(checkpoint_pattern)
     
     if not all_checkpoints:
-        raise Exception('No model checkpoints found with {all_checkpoints}')
+        raise Exception(f'No model checkpoints found with {checkpoint_pattern}')
 
     # find the latest one
     latest_epoch = 0
@@ -24,14 +26,47 @@ def load_last_from_checkpoint(log_path, version_number):
     return model, epoch
 
 if __name__ == "__main__":
-    model, epoch = load_last_from_checkpoint("lightning_logs_debugging", 0)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-m", 
+        "--mode", 
+        type=str,
+        help="the kind of the dataset",
+        default="sequence"
+    )
+    parser.add_argument(
+        "-v", 
+        "--vocab_size", 
+        type=int,
+        help="size of the vocabulary",
+        default=10
+    )
+    parser.add_argument(
+        "-s", 
+        "--version", 
+        type=int,
+        help="the version of the model to run"
+    )
+    parser.set_defaults(penalize_upper_levels=False)
+    args = parser.parse_args()
+    
+    SEQUENCE_LENGTH = 20
+    BATCH_SIZE = 16
+    VOCAB_SIZE = args.vocab_size
+    NUM_BATCHES = VOCAB_SIZE
+    MODE = args.mode
+    VERSION = args.version
+    
+    assert VERSION is not None
+
+    model, epoch = load_last_from_checkpoint("lightning_logs_debugging", VERSION)
 
     data_test = SimpleDataset(
-        'sequence', 
-        vocab_size=40, 
-        sequence_length=20, 
-        batch_size=4, 
-        num_batches=125
+        mode=MODE,
+        vocab_size=VOCAB_SIZE, 
+        sequence_length=SEQUENCE_LENGTH, 
+        batch_size=BATCH_SIZE, 
+        num_batches=100
     )
 
     trainer = pl.Trainer()
