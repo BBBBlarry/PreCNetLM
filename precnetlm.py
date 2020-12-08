@@ -27,6 +27,7 @@ class PreCNetLM(pl.LightningModule):
         assert error_activation in ['relu', 'leaky_relu']
 
         super(PreCNetLM, self).__init__()
+        self.save_hyperparameters()
 
         self.num_stacks = len(a_hat_stack_sizes)
         self.e_sizes = {}
@@ -264,6 +265,23 @@ class PreCNetLM(pl.LightningModule):
 
         self.log('Loss/val', loss, self.current_epoch)
         return loss
+
+    def test_step(self, batch, batch_idx):
+        predictions, errors, _ = self(batch)
+
+        loss = 0.0
+        for level in errors:
+            sum_e = errors[level][:, 1:, :].mean()
+            loss += self.mu[level] * sum_e
+
+        probs = batch.mul(predictions).sum(axis=-1)
+        log_probs = torch.log(probs)
+        entropy = -log_probs.mean()
+
+        return OrderedDict({
+            'Loss/test': loss,
+            'Entropy/test': entropy,
+        })
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
