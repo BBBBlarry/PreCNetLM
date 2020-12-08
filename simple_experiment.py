@@ -3,18 +3,19 @@ import argparse
 
 from pytorch_lightning.callbacks import LearningRateMonitor
 
-from test_data_util import *
+from simple_dataset import *
 from precnetlm import *
 
+torch.manual_seed(0)
 
-def run_experiment(dataset_mode, vocab_size, epochs):
+def run_experiment(dataset_mode, vocab_size, epochs, penalize_upper_levels):
     SEQUENCE_LENGTH = 20
     BATCH_SIZE = 16
     TEST_BATCH_SIZE = 16
     NUM_BATCHES = vocab_size
     
-    data_train = TestDataset(dataset_mode, vocab_size, SEQUENCE_LENGTH, BATCH_SIZE, NUM_BATCHES)
-    data_test = TestDataset(dataset_mode, vocab_size, SEQUENCE_LENGTH, BATCH_SIZE, NUM_BATCHES)
+    data_train = SimpleDataset(dataset_mode, vocab_size, SEQUENCE_LENGTH, BATCH_SIZE, NUM_BATCHES)
+    data_test = SimpleDataset(dataset_mode, vocab_size, SEQUENCE_LENGTH, BATCH_SIZE, NUM_BATCHES)
 
     a_hat_stack_sizes=[
         [64], 
@@ -32,7 +33,11 @@ def run_experiment(dataset_mode, vocab_size, epochs):
         (64, 1),
         (64, 1),
     ]
-    mu = torch.FloatTensor([1.0, 0.1, 0.1, 0.1, 0.1, 0.1])
+
+    if penalize_upper_levels:
+        mu = torch.FloatTensor([1.0, 0.1, 0.1, 0.1, 0.1, 0.1])
+    else:
+        mu = torch.FloatTensor([1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     precnetlm = PreCNetLM(
         vocabs_size=vocab_size,
@@ -41,7 +46,7 @@ def run_experiment(dataset_mode, vocab_size, epochs):
         mu=mu
     )
 
-    print(precnetlm)
+    # print(precnetlm)
 
     tb_logger = pl_loggers.TensorBoardLogger('lightning_logs_debugging/')
     lr_logger = LearningRateMonitor(logging_interval='step')
@@ -120,6 +125,12 @@ if __name__ == "__main__":
         help="number of epochs to train for",
         default=10
     )
-    
+    parser.add_argument(
+        '--penalize_upper_levels', 
+        dest='penalize_upper_levels', 
+        action='store_true'
+    )
+    parser.set_defaults(penalize_upper_levels=False)
+
     args = parser.parse_args()
-    run_experiment(args.mode, args.vocab_size, args.epochs)
+    run_experiment(args.mode, args.vocab_size, args.epochs, args.penalize_upper_levels)

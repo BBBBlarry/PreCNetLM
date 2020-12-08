@@ -7,9 +7,9 @@ import random
 import torch
 
 
-class TestDataset(torch.utils.data.Dataset):
+class SimpleDataset(torch.utils.data.Dataset):
     def __init__(self, mode, vocab_size, sequence_length, batch_size, num_batches):
-        super(TestDataset, self).__init__()
+        super(SimpleDataset, self).__init__()
         self.mode = mode
         self.sequence_length = sequence_length
         self.batch_size = batch_size
