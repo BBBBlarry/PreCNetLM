@@ -1,0 +1,160 @@
+PreCNetLM(
+  (units): ModuleDict(
+    (0): ModuleDict(
+      (r): GRU(6, 2, batch_first=True)
+      (a_hat): Sequential(
+        (a_hat_0_fc_0): Linear(in_features=2, out_features=2, bias=True)
+        (a_hat_0_activation_0): LeakyReLU(negative_slope=0.01)
+        (a_hat_0_fc_1): Linear(in_features=2, out_features=3, bias=True)
+      )
+    )
+    (1): ModuleDict(
+      (r): GRU(4, 2, batch_first=True)
+      (a_hat): Sequential(
+        (a_hat_1_fc_0): Linear(in_features=2, out_features=2, bias=True)
+        (a_hat_1_activation_0): LeakyReLU(negative_slope=0.01)
+        (a_hat_1_fc_1): Linear(in_features=2, out_features=2, bias=True)
+      )
+      (e_affline): Linear(in_features=4, out_features=6, bias=True)
+    )
+    (2): ModuleDict(
+      (r): GRU(4, 2, batch_first=True)
+      (a_hat): Sequential(
+        (a_hat_2_fc_0): Linear(in_features=2, out_features=2, bias=True)
+        (a_hat_2_activation_0): LeakyReLU(negative_slope=0.01)
+        (a_hat_2_fc_1): Linear(in_features=2, out_features=2, bias=True)
+      )
+      (e_affline): Linear(in_features=4, out_features=4, bias=True)
+    )
+  )
+)
+
+[DEBUG] mode: train
+
+[DEBUG] sequence id: 0
+
+[DEBUG] prediction phase
+
+[DEBUG] level: 2
+[DEBUG] e_current: ([1, 4]) [[0. 0. 0. 0.]]
+[DEBUG] r_unit_input: ([1, 4]) [[0. 0. 0. 0.]]
+[DEBUG] r_unit_input after unsequeeze: ([1, 1, 4]) [[[0. 0. 0. 0.]]]
+[DEBUG] r after sequeeze: ([1, 2]) [[ 0.02115128 -0.17540899]]
+[DEBUG] r_internal: ([1, 1, 2]) [[[ 0.02115128 -0.17540899]]]
+[DEBUG] a_hat: ([1, 2]) [[-0.18073714  0.3992049 ]]
+[DEBUG] actual: ([1, 2]) [[0. 0.]]
+[DEBUG] prediction: ([1, 2]) [[-0.18073714  0.3992049 ]]
+[DEBUG] e: ([1, 4]) [[-0.00180737  0.3992049   0.18073714 -0.00399205]]
+
+[DEBUG] level: 1
+[DEBUG] e_top_down: ([1, 4]) [[-0.00180737  0.3992049   0.18073714 -0.00399205]]
+[DEBUG] r_unit_input: ([1, 4]) [[-0.01401222 -0.13771926  0.00218771 -0.0373262 ]]
+[DEBUG] r_unit_input after unsequeeze: ([1, 1, 4]) [[[-0.01401222 -0.13771926  0.00218771 -0.0373262 ]]]
+[DEBUG] r after sequeeze: ([1, 2]) [[0.10449321 0.2313802 ]]
+[DEBUG] r_internal: ([1, 1, 2]) [[[0.10449321 0.2313802 ]]]
+[DEBUG] a_hat: ([1, 2]) [[ 0.3899524  -0.47373948]]
+[DEBUG] actual: ([1, 2]) [[0. 0.]]
+[DEBUG] prediction: ([1, 2]) [[ 0.3899524  -0.47373948]]
+[DEBUG] e: ([1, 4]) [[ 0.3899524  -0.00473739 -0.00389952  0.47373948]]
+
+[DEBUG] level: 0
+[DEBUG] e_top_down: ([1, 4]) [[ 0.3899524  -0.00473739 -0.00389952  0.47373948]]
+[DEBUG] r_unit_input: ([1, 6]) [[-0.7105026   0.41857532 -0.00789681 -0.43302152 -0.49303746  0.13851693]]
+[DEBUG] r_unit_input after unsequeeze: ([1, 1, 6]) [[[-0.7105026   0.41857532 -0.00789681 -0.43302152 -0.49303746
+    0.13851693]]]
+[DEBUG] r after sequeeze: ([1, 2]) [[ 0.37622815 -0.43148452]]
+[DEBUG] r_internal: ([1, 1, 2]) [[[ 0.37622815 -0.43148452]]]
+[DEBUG] a_hat: ([1, 3]) [[-0.46274748 -0.04515305  0.48316136]]
+
+[DEBUG] Level is 0, ran softmax
+[DEBUG] a_hat: ([1, 3]) [[0.19633028 0.2980892  0.5055805 ]]
+[DEBUG] actual: ([1, 3]) [[1. 0. 0.]]
+[DEBUG] prediction: ([1, 3]) [[0.19633028 0.2980892  0.5055805 ]]
+[DEBUG] e: ([1, 6]) [[-0.0080367   0.2980892   0.5055805   0.8036697  -0.00298089 -0.0050558 ]]
+
+[DEBUG] correction phase
+
+[DEBUG] level: 0
+[DEBUG] r_unit_input: ([1, 6]) [[-0.0080367   0.2980892   0.5055805   0.8036697  -0.00298089 -0.0050558 ]]
+[DEBUG] r_unit_input after unsequeeze: ([1, 1, 6]) [[[-0.0080367   0.2980892   0.5055805   0.8036697  -0.00298089
+   -0.0050558 ]]]
+[DEBUG] r after sequeeze: ([1, 2]) [[ 0.57556665 -0.38775104]]
+[DEBUG] r_internal: ([1, 1, 2]) [[[ 0.57556665 -0.38775104]]]
+
+[DEBUG] level: 1
+[DEBUG] actual: ([1, 2]) [[ 0.57556665 -0.38775104]]
+[DEBUG] prediction: ([1, 2]) [[ 0.3899524  -0.47373948]]
+[DEBUG] e: ([1, 4]) [[-0.00185614 -0.00085988  0.18561426  0.08598843]]
+[DEBUG] r_unit_input: ([1, 4]) [[-0.00185614 -0.00085988  0.18561426  0.08598843]]
+[DEBUG] r_unit_input after unsequeeze: ([1, 1, 4]) [[[-0.00185614 -0.00085988  0.18561426  0.08598843]]]
+[DEBUG] r after sequeeze: ([1, 2]) [[0.09988305 0.46148905]]
+[DEBUG] r_internal: ([1, 1, 2]) [[[0.09988305 0.46148905]]]
+
+[DEBUG] level: 2
+[DEBUG] actual: ([1, 2]) [[0.09988305 0.46148905]]
+[DEBUG] prediction: ([1, 2]) [[-0.18073714  0.3992049 ]]
+[DEBUG] e: ([1, 4]) [[-0.0028062  -0.00062284  0.2806202   0.06228414]]
+
+[DEBUG] sequence id: 1
+
+[DEBUG] prediction phase
+
+[DEBUG] level: 2
+[DEBUG] e_current: ([1, 4]) [[-0.0028062  -0.00062284  0.2806202   0.06228414]]
+[DEBUG] r_unit_input: ([1, 4]) [[-0.0028062  -0.00062284  0.2806202   0.06228414]]
+[DEBUG] r_unit_input after unsequeeze: ([1, 1, 4]) [[[-0.0028062  -0.00062284  0.2806202   0.06228414]]]
+[DEBUG] r after sequeeze: ([1, 2]) [[ 0.06856261 -0.2515876 ]]
+[DEBUG] r_internal: ([1, 1, 2]) [[[ 0.06856261 -0.2515876 ]]]
+[DEBUG] a_hat: ([1, 2]) [[-0.16629942  0.39192313]]
+[DEBUG] actual: ([1, 2]) [[0.09988305 0.46148905]]
+[DEBUG] prediction: ([1, 2]) [[-0.16629942  0.39192313]]
+[DEBUG] e: ([1, 4]) [[-0.00266182 -0.00069566  0.26618248  0.06956592]]
+
+[DEBUG] level: 1
+[DEBUG] e_top_down: ([1, 4]) [[-0.00266182 -0.00069566  0.26618248  0.06956592]]
+[DEBUG] r_unit_input: ([1, 4]) [[-0.19228299 -0.10390704 -0.16844854 -0.21473789]]
+[DEBUG] r_unit_input after unsequeeze: ([1, 1, 4]) [[[-0.19228299 -0.10390704 -0.16844854 -0.21473789]]]
+[DEBUG] r after sequeeze: ([1, 2]) [[0.3151266  0.58145064]]
+[DEBUG] r_internal: ([1, 1, 2]) [[[0.3151266  0.58145064]]]
+[DEBUG] a_hat: ([1, 2]) [[ 0.39297527 -0.6188588 ]]
+[DEBUG] actual: ([1, 2]) [[ 0.57556665 -0.38775104]]
+[DEBUG] prediction: ([1, 2]) [[ 0.39297527 -0.6188588 ]]
+[DEBUG] e: ([1, 4]) [[-0.00182591 -0.00231108  0.18259138  0.23110777]]
+
+[DEBUG] level: 0
+[DEBUG] e_top_down: ([1, 4]) [[-0.00182591 -0.00231108  0.18259138  0.23110777]]
+[DEBUG] r_unit_input: ([1, 6]) [[-0.44045967  0.39128265  0.10985762 -0.4803377  -0.4782291  -0.09019136]]
+[DEBUG] r_unit_input after unsequeeze: ([1, 1, 6]) [[[-0.44045967  0.39128265  0.10985762 -0.4803377  -0.4782291
+   -0.09019136]]]
+[DEBUG] r after sequeeze: ([1, 2]) [[ 0.51755995 -0.5470802 ]]
+[DEBUG] r_internal: ([1, 1, 2]) [[[ 0.51755995 -0.5470802 ]]]
+[DEBUG] a_hat: ([1, 3]) [[-0.4599924  -0.02271333  0.4400811 ]]
+
+[DEBUG] Level is 0, ran softmax
+[DEBUG] a_hat: ([1, 3]) [[0.19966966 0.30918613 0.49114424]]
+[DEBUG] actual: ([1, 3]) [[2. 0. 0.]]
+[DEBUG] prediction: ([1, 3]) [[0.19966966 0.30918613 0.49114424]]
+[DEBUG] e: ([1, 6]) [[-0.0180033   0.30918613  0.49114424  1.8003304  -0.00309186 -0.00491144]]
+
+[DEBUG] correction phase
+
+[DEBUG] level: 0
+[DEBUG] r_unit_input: ([1, 6]) [[-0.0180033   0.30918613  0.49114424  1.8003304  -0.00309186 -0.00491144]]
+[DEBUG] r_unit_input after unsequeeze: ([1, 1, 6]) [[[-0.0180033   0.30918613  0.49114424  1.8003304  -0.00309186
+   -0.00491144]]]
+[DEBUG] r after sequeeze: ([1, 2]) [[ 0.73034406 -0.44142553]]
+[DEBUG] r_internal: ([1, 1, 2]) [[[ 0.73034406 -0.44142553]]]
+
+[DEBUG] level: 1
+[DEBUG] actual: ([1, 2]) [[ 0.73034406 -0.44142553]]
+[DEBUG] prediction: ([1, 2]) [[ 0.39297527 -0.6188588 ]]
+[DEBUG] e: ([1, 4]) [[-0.00337369 -0.00177433  0.3373688   0.17743328]]
+[DEBUG] r_unit_input: ([1, 4]) [[-0.00337369 -0.00177433  0.3373688   0.17743328]]
+[DEBUG] r_unit_input after unsequeeze: ([1, 1, 4]) [[[-0.00337369 -0.00177433  0.3373688   0.17743328]]]
+[DEBUG] r after sequeeze: ([1, 2]) [[0.22130463 0.71961796]]
+[DEBUG] r_internal: ([1, 1, 2]) [[[0.22130463 0.71961796]]]
+
+[DEBUG] level: 2
+[DEBUG] actual: ([1, 2]) [[0.22130463 0.71961796]]
+[DEBUG] prediction: ([1, 2]) [[-0.16629942  0.39192313]]
+[DEBUG] e: ([1, 4]) [[-0.00387604 -0.00327695  0.38760406  0.32769483]]
