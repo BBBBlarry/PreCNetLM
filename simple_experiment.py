@@ -22,9 +22,9 @@ def run_experiment(dataset_mode, vocab_size, num_batches, epochs, penalize_upper
     r_stack_sizes = [(r_size, r_layers) for _ in range(num_stacks)]
 
     if penalize_upper_levels:
-        mu = torch.FloatTensor([1.0, 0.1, 0.1, 0.1, 0.1, 0.1])
+        mu = torch.FloatTensor([1.0] + [0.1 for _ in range(num_stacks - 1)])
     else:
-        mu = torch.FloatTensor([1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        mu = torch.FloatTensor([1.0] + [0.1 for _ in range(num_stacks - 1)])
 
     precnetlm = PreCNetLM(
         vocabs_size=vocab_size,
