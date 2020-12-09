@@ -44,11 +44,6 @@ class HarryPotterDataset(torch.utils.data.Dataset):
         return self.batch_size * self.num_batches
         
     def __getitem__(self, idx):
-        # Return the data and label for a character sequence as described above.
-        # The data and labels should be torch long tensors.
-        # You should return a single entry for the batch using the idx to decide which chunk you are 
-        # in and how far down in the chunk you are.
-        
         """ 
         Example:
         Batch size = 2
@@ -70,7 +65,7 @@ class HarryPotterDataset(torch.utils.data.Dataset):
         data_first_element_index = (chunk_idx * self.chunk_length_total) + (sequence_idx * self.sequence_length)
         data_last_element_index = min(data_first_element_index + self.sequence_length, (chunk_idx + 1) * self.chunk_length_total - self.offset)
         data = self.tokens[data_first_element_index:data_last_element_index]
-        data = torch.nn.functional.one_hot(torch.LongTensor(data), self.vocab_size())
+        data = torch.nn.functional.one_hot(torch.LongTensor(data), self.vocab_size()).type(torch.FloatTensor)
         
         return data
 

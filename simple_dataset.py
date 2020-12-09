@@ -8,13 +8,20 @@ import torch
 
 
 class SimpleDataset(torch.utils.data.Dataset):
-    def __init__(self, mode, vocab_size, sequence_length, batch_size, num_batches):
+    def __init__(self, mode, vocab_size, sequence_length, batch_size, num_batches, verbose=True):
         super(SimpleDataset, self).__init__()
         self.mode = mode
         self.sequence_length = sequence_length
         self.batch_size = batch_size
         self.vocab_size = vocab_size
         self.num_batches = num_batches
+
+        if verbose:
+            print(f'Mode: {mode}')
+            print(f'Vocab Size: {vocab_size}')
+            print(f'Sequence Length: {sequence_length}')
+            print(f'Batch Size: {batch_size}')
+            print(f'Number of Batches: {num_batches}')
 
     def __len__(self):
         # return the number of unique sequences you have, not the number of characters.
@@ -49,5 +56,5 @@ class SimpleDataset(torch.utils.data.Dataset):
         else:
             raise Exception(f'No such mode: {self.mode}')
 
-        data = torch.nn.functional.one_hot(torch.LongTensor(data), self.vocab_size)
+        data = torch.nn.functional.one_hot(torch.LongTensor(data), self.vocab_size).type(torch.FloatTensor)
         return data

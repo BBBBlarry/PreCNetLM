@@ -1,1 +1,1 @@
-rm -rf ../lightning_logs*/*
+rm -rf lightning_logs*/*
