@@ -23,7 +23,7 @@ if __name__ == "__main__":
         (128, 2),
         (128, 1),
     ]
-    mu = torch.FloatTensor([1.0, 0.00, 0.00, 0.00, 0.00])
+    mu = torch.FloatTensor([1.0, 0.00, 0.00])
 
     precnetlm = PreCNetLM(
         vocabs_size=vocab_size,
