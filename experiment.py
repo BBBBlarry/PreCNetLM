@@ -17,17 +17,13 @@ if __name__ == "__main__":
         [128], 
         [128], 
         [128], 
-        [128], 
-        [128], 
     ]
     r_stack_sizes=[
-        (128, 1),
-        (128, 1),
-        (128, 1),
-        (128, 1),
+        (128, 3),
+        (128, 2),
         (128, 1),
     ]
-    mu = torch.FloatTensor([1.0, 0.01, 0.01, 0.01, 0.01])
+    mu = torch.FloatTensor([1.0, 0.00, 0.00, 0.00, 0.00])
 
     precnetlm = PreCNetLM(
         vocabs_size=vocab_size,
