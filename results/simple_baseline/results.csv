@@ -1,0 +1,9 @@
+Task,Model,Dev Perplexity
+Repeating Single Digit,PreCNetLM,1.9747416973114014
+Repeating Single Digit,LSTM,1.0101310014724731
+Sequence of Numbers,PreCNetLM,1.134644627571106
+Sequence of Numbers,LSTM,1.0234124660491943
+Sequence of Repeating Numbers,PreCNetLM,1.140946626663208
+Sequence of Repeating Numbers,LSTM,1.0352956056594849
+Binary Counting,PreCNetLM,40.1439323425293
+Binary Counting,LSTM,1.4215362071990967

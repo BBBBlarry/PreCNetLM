@@ -24,8 +24,6 @@ def run_experiment(dataset_mode, vocab_size, num_batches, epochs,
         num_layers=num_layers,
     )
 
-    print(lstmlm)
-
     tb_logger = pl_loggers.TensorBoardLogger('lightning_logs_debugging/')
     lr_logger = LearningRateMonitor(logging_interval='step')
 
