@@ -1,3 +1,3 @@
 Model,Number of Parameters
-PreCNetLM,917000
-LSTM,915500
+PreCNetLM,1000000
+LSTM,963000

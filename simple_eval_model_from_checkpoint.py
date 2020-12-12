@@ -59,7 +59,7 @@ if __name__ == "__main__":
     
     assert VERSION is not None
 
-    model, epoch = load_last_from_checkpoint("lightning_logs_debugging", VERSION)
+    model, epoch = load_last_from_checkpoint("lightning_logs", VERSION)
 
     data_test = SimpleDataset(
         mode=MODE,
